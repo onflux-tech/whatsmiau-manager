@@ -9,7 +9,8 @@ export function useWorkspaces() {
     queryFn: () =>
       pb.collection("workspaces").getFullList<Workspace>({
         sort: "order,name",
-        fields: "id,name,url,icon,order,created,updated",
+        fields:
+          "id,collectionId,collectionName,name,url,icon,icon_color,icon_file,order,created,updated",
       }),
   });
 

@@ -11,6 +11,7 @@ import {
 import { useHealthLatest } from "@/hooks/useHealthLatest";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { cn } from "@/lib/utils";
+import { WorkspaceAvatar } from "./WorkspaceAvatar";
 
 const STATUS_DOT: Record<string, string> = {
   up: "bg-success",
@@ -30,9 +31,13 @@ export function WorkspaceSwitcher({ currentWid }: { currentWid: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2 font-semibold">
-          <span className="flex size-5 items-center justify-center rounded bg-muted text-xs font-semibold">
-            {current?.name?.charAt(0).toUpperCase() ?? "W"}
-          </span>
+          {current ? (
+            <WorkspaceAvatar workspace={current} size="sm" />
+          ) : (
+            <span className="flex size-5 items-center justify-center rounded bg-muted text-xs font-semibold">
+              W
+            </span>
+          )}
           <span className="max-w-[120px] truncate">{current?.name ?? "Workspace"}</span>
           <span
             className={cn(
@@ -52,9 +57,7 @@ export function WorkspaceSwitcher({ currentWid }: { currentWid: string }) {
             }}
             className="flex items-center gap-2"
           >
-            <span className="flex size-5 items-center justify-center rounded bg-muted text-xs font-semibold">
-              {ws.name.charAt(0).toUpperCase()}
-            </span>
+            <WorkspaceAvatar workspace={ws} size="sm" />
             <span className="flex-1 truncate">{ws.name}</span>
             <span
               className={cn(
