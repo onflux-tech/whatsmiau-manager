@@ -4,6 +4,7 @@ export const METHOD_STYLE: Record<HttpMethod, string> = {
   GET: "border-blue-400/30 text-blue-400 bg-blue-400/10",
   POST: "border-green-400/30 text-green-400 bg-green-400/10",
   PUT: "border-amber-400/30 text-amber-400 bg-amber-400/10",
+  PATCH: "border-amber-400/30 text-amber-400 bg-amber-400/10",
   DELETE: "border-red-400/30 text-red-400 bg-red-400/10",
 };
 
@@ -96,7 +97,7 @@ export function generateCurl(
     if (value) parts.push(`\\\n  -H '${key}: ${value}'`);
   }
 
-  if (body && method !== "GET" && method !== "DELETE") {
+  if (body && method !== "GET") {
     parts.push(`\\\n  -d '${body}'`);
   }
 
@@ -123,7 +124,7 @@ export function generateJsSnippet(
     opts.push(`  headers: {\n${hdr.join("\n")}\n  },`);
   }
 
-  if (body && method !== "GET" && method !== "DELETE") {
+  if (body && method !== "GET") {
     opts.push(`  body: JSON.stringify(${body}),`);
   }
 

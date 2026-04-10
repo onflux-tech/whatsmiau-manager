@@ -1,7 +1,332 @@
-import { Globe, Link, MessageSquare, MonitorSmartphone, Radio, Webhook } from "lucide-react";
+import {
+  FolderCog,
+  Globe,
+  Info,
+  Link,
+  MessageSquare,
+  MonitorSmartphone,
+  Radio,
+  Webhook,
+} from "lucide-react";
 import type { ApiGroup } from "../types";
 
 export const apiGroups: ApiGroup[] = [
+  {
+    id: "workspace-management",
+    title: "Workspace Management",
+    description:
+      "Create, list, update, and delete workspaces. Each workspace represents a connection to a WhatsMiau API server with its own URL and API key.",
+    icon: FolderCog,
+    endpoints: [
+      {
+        id: "list-workspaces",
+        title: "List Workspaces",
+        method: "GET",
+        path: "/api/collections/workspaces/records",
+        description:
+          "Returns all workspaces. The api_key field is stripped from the response for security. Supports PocketBase query parameters for pagination, filtering, and sorting.",
+        auth: "required",
+        queryParams: [
+          {
+            name: "page",
+            type: "number",
+            required: false,
+            description: "Page number (default: 1)",
+            example: "1",
+          },
+          {
+            name: "perPage",
+            type: "number",
+            required: false,
+            description: "Items per page (default: 30, max: 500)",
+            example: "30",
+          },
+          {
+            name: "sort",
+            type: "string",
+            required: false,
+            description: 'Sort field with optional - prefix for DESC (e.g., "-created")',
+            example: "-created",
+          },
+          {
+            name: "filter",
+            type: "string",
+            required: false,
+            description: "PocketBase filter expression",
+            example: 'name~"prod"',
+          },
+        ],
+        responseExample: JSON.stringify(
+          {
+            page: 1,
+            perPage: 30,
+            totalPages: 1,
+            totalItems: 2,
+            items: [
+              {
+                id: "abc123",
+                name: "Production",
+                url: "https://api.example.com",
+                created: "2025-01-01 00:00:00.000Z",
+                updated: "2025-01-01 00:00:00.000Z",
+              },
+            ],
+          },
+          null,
+          2,
+        ),
+        curlExample: `curl http://localhost:8090/api/collections/workspaces/records \\
+  -H "Authorization: YOUR_PB_TOKEN"`,
+        jsExample: `const records = await pb.collection("workspaces").getFullList({
+  sort: "-created",
+});`,
+      },
+      {
+        id: "create-workspace",
+        title: "Create Workspace",
+        method: "POST",
+        path: "/api/collections/workspaces/records",
+        description:
+          "Creates a new workspace. The URL must be unique across all workspaces. After creation, the Manager immediately polls the WhatsMiau API for instance data.",
+        auth: "required",
+        requestBody: {
+          contentType: "application/json",
+          fields: [
+            {
+              name: "name",
+              type: "string",
+              required: true,
+              description: "Workspace display name (max 100 characters)",
+              example: "Production",
+            },
+            {
+              name: "url",
+              type: "string",
+              required: true,
+              description: "WhatsMiau API base URL (must be unique)",
+              example: "https://api.example.com",
+            },
+            {
+              name: "api_key",
+              type: "string",
+              required: true,
+              description: "API key for authenticating with the WhatsMiau API",
+              example: "your-api-key-here",
+            },
+          ],
+        },
+        responseExample: JSON.stringify(
+          {
+            id: "abc123",
+            name: "Production",
+            url: "https://api.example.com",
+            created: "2025-01-01 00:00:00.000Z",
+            updated: "2025-01-01 00:00:00.000Z",
+          },
+          null,
+          2,
+        ),
+        curlExample: `curl -X POST http://localhost:8090/api/collections/workspaces/records \\
+  -H "Authorization: YOUR_PB_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"name": "Production", "url": "https://api.example.com", "api_key": "your-api-key"}'`,
+        jsExample: `const record = await pb.collection("workspaces").create({
+  name: "Production",
+  url: "https://api.example.com",
+  api_key: "your-api-key",
+});`,
+      },
+      {
+        id: "get-workspace",
+        title: "Get Workspace",
+        method: "GET",
+        path: "/api/collections/workspaces/records/{id}",
+        description:
+          "Returns a single workspace by ID. The api_key field is stripped from the response.",
+        auth: "required",
+        parameters: [
+          {
+            name: "id",
+            type: "string",
+            required: true,
+            description: "Workspace record ID",
+            example: "abc123",
+          },
+        ],
+        responseExample: JSON.stringify(
+          {
+            id: "abc123",
+            name: "Production",
+            url: "https://api.example.com",
+            created: "2025-01-01 00:00:00.000Z",
+            updated: "2025-01-01 00:00:00.000Z",
+          },
+          null,
+          2,
+        ),
+        curlExample: `curl http://localhost:8090/api/collections/workspaces/records/{id} \\
+  -H "Authorization: YOUR_PB_TOKEN"`,
+        jsExample: `const record = await pb.collection("workspaces").getOne("abc123");`,
+      },
+      {
+        id: "update-workspace",
+        title: "Update Workspace",
+        method: "PATCH",
+        path: "/api/collections/workspaces/records/{id}",
+        description:
+          "Updates a workspace. Send only the fields you want to change. After update, the Manager re-polls the WhatsMiau API for instance data.",
+        auth: "required",
+        parameters: [
+          {
+            name: "id",
+            type: "string",
+            required: true,
+            description: "Workspace record ID",
+            example: "abc123",
+          },
+        ],
+        requestBody: {
+          contentType: "application/json",
+          fields: [
+            {
+              name: "name",
+              type: "string",
+              required: false,
+              description: "Updated display name",
+              example: "Staging",
+            },
+            {
+              name: "url",
+              type: "string",
+              required: false,
+              description: "Updated WhatsMiau API URL",
+              example: "https://staging.example.com",
+            },
+            {
+              name: "api_key",
+              type: "string",
+              required: false,
+              description: "Updated API key",
+              example: "new-api-key",
+            },
+          ],
+        },
+        responseExample: JSON.stringify(
+          {
+            id: "abc123",
+            name: "Staging",
+            url: "https://staging.example.com",
+            created: "2025-01-01 00:00:00.000Z",
+            updated: "2025-01-02 00:00:00.000Z",
+          },
+          null,
+          2,
+        ),
+        curlExample: `curl -X PATCH http://localhost:8090/api/collections/workspaces/records/{id} \\
+  -H "Authorization: YOUR_PB_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"name": "Staging"}'`,
+        jsExample: `const record = await pb.collection("workspaces").update("abc123", {
+  name: "Staging",
+});`,
+      },
+      {
+        id: "delete-workspace",
+        title: "Delete Workspace",
+        method: "DELETE",
+        path: "/api/collections/workspaces/records/{id}",
+        description:
+          "Deletes a workspace and all associated health checks and instance snapshots (cascade delete). The Manager stops polling for this workspace immediately.",
+        auth: "required",
+        parameters: [
+          {
+            name: "id",
+            type: "string",
+            required: true,
+            description: "Workspace record ID",
+            example: "abc123",
+          },
+        ],
+        curlExample: `curl -X DELETE http://localhost:8090/api/collections/workspaces/records/{id} \\
+  -H "Authorization: YOUR_PB_TOKEN"`,
+        jsExample: `await pb.collection("workspaces").delete("abc123");`,
+      },
+    ],
+  },
+  {
+    id: "system",
+    title: "System",
+    description: "System endpoints for version info, health monitoring, and initial setup.",
+    icon: Info,
+    endpoints: [
+      {
+        id: "get-version",
+        title: "Get Version",
+        method: "GET",
+        path: "/api/version",
+        description:
+          "Returns the Manager version string. In production builds, this matches the git tag used to build the Docker image.",
+        auth: "public",
+        responseExample: JSON.stringify({ version: "v0.1.0" }, null, 2),
+        curlExample: `curl http://localhost:8090/api/version`,
+        jsExample: `const res = await fetch("/api/version");
+const { version } = await res.json();`,
+      },
+      {
+        id: "setup-status",
+        title: "Check Setup Status",
+        method: "GET",
+        path: "/api/setup/status",
+        description:
+          "Checks if the initial superuser account has been created. Returns true if no admin exists yet.",
+        auth: "public",
+        responseExample: JSON.stringify({ needsSetup: true }, null, 2),
+        curlExample: `curl http://localhost:8090/api/setup/status`,
+        jsExample: `const res = await fetch("/api/setup/status");
+const { needsSetup } = await res.json();`,
+      },
+      {
+        id: "create-setup",
+        title: "Initial Setup",
+        method: "POST",
+        path: "/api/setup",
+        description:
+          "Creates the first superuser account. This endpoint can only be called once. Returns 403 if a superuser already exists.",
+        auth: "public",
+        requestBody: {
+          contentType: "application/json",
+          fields: [
+            {
+              name: "email",
+              type: "string",
+              required: true,
+              description: "Admin email address",
+              example: "admin@example.com",
+            },
+            {
+              name: "password",
+              type: "string",
+              required: true,
+              description: "Admin password (minimum 8 characters)",
+              example: "your-password",
+            },
+          ],
+        },
+        responseExample: JSON.stringify({ message: "ok" }, null, 2),
+        curlExample: `curl -X POST http://localhost:8090/api/setup \\
+  -H "Content-Type: application/json" \\
+  -d '{"email": "admin@example.com", "password": "your-password"}'`,
+        jsExample: `const res = await fetch("/api/setup", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    email: "admin@example.com",
+    password: "your-password",
+  }),
+});`,
+      },
+    ],
+  },
   {
     id: "instance-management",
     title: "Instance Management",
@@ -66,30 +391,28 @@ const instances = await res.json();`,
           contentType: "application/json",
           fields: [
             {
-              name: "id",
+              name: "instanceName",
               type: "string",
               required: true,
-              description: "Unique instance identifier (slug-friendly)",
+              description:
+                "Unique instance identifier and display name (slug-friendly). This value is also used as the instance ID.",
               example: "my-instance",
-            },
-            {
-              name: "name",
-              type: "string",
-              required: false,
-              description: "Display name for the instance",
-              example: "Production WhatsApp",
             },
           ],
         },
         responseExample: JSON.stringify(
-          { id: "my-instance", name: "Production WhatsApp", status: "closed" },
+          {
+            id: "my-instance",
+            instanceName: "my-instance",
+            status: "closed",
+          },
           null,
           2,
         ),
         curlExample: `curl -X POST http://localhost:8090/api/proxy/{wid}/instance \\
   -H "Authorization: YOUR_PB_TOKEN" \\
   -H "Content-Type: application/json" \\
-  -d '{"id": "my-instance", "name": "Production WhatsApp"}'`,
+  -d '{"instanceName": "my-instance"}'`,
         jsExample: `const res = await fetch("/api/proxy/{wid}/instance", {
   method: "POST",
   headers: {
@@ -97,8 +420,7 @@ const instances = await res.json();`,
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    id: "my-instance",
-    name: "Production WhatsApp",
+    instanceName: "my-instance",
   }),
 });`,
       },
@@ -395,7 +717,7 @@ const { webhook } = await res.json();`,
         method: "POST",
         path: "/api/proxy/{wid}/webhook/{iid}",
         description:
-          "Creates or updates the webhook configuration for an instance. Set the URL, enable/disable, and choose which events to subscribe to.",
+          "Creates or updates the webhook configuration for an instance. The body must be wrapped in a webhook object. Set the URL, enable/disable, choose events, and optionally add custom headers.",
         auth: "required",
         parameters: [
           {
@@ -417,35 +739,42 @@ const { webhook } = await res.json();`,
           contentType: "application/json",
           fields: [
             {
-              name: "url",
+              name: "webhook.url",
               type: "string",
-              required: true,
+              required: false,
               description: "Webhook delivery URL",
               example: "https://example.com/webhook",
             },
             {
-              name: "enabled",
+              name: "webhook.enabled",
               type: "boolean",
               required: false,
               description: "Enable or disable the webhook",
               example: "true",
             },
             {
-              name: "events",
+              name: "webhook.events",
               type: "string[]",
               required: false,
               description: "List of event types to subscribe to",
               example: '["messages", "status"]',
             },
             {
-              name: "byEvents",
+              name: "webhook.headers",
+              type: "object",
+              required: false,
+              description: "Custom headers sent with webhook requests (key-value pairs)",
+              example: '{"X-Custom": "value"}',
+            },
+            {
+              name: "webhook.byEvents",
               type: "boolean",
               required: false,
               description: "If true, sends events to separate sub-paths by event type",
               example: "false",
             },
             {
-              name: "base64",
+              name: "webhook.base64",
               type: "boolean",
               required: false,
               description: "If true, media payloads are sent as base64",
@@ -456,7 +785,7 @@ const { webhook } = await res.json();`,
         curlExample: `curl -X POST http://localhost:8090/api/proxy/{wid}/webhook/{iid} \\
   -H "Authorization: YOUR_PB_TOKEN" \\
   -H "Content-Type: application/json" \\
-  -d '{"url": "https://example.com/webhook", "enabled": true}'`,
+  -d '{"webhook": {"url": "https://example.com/webhook", "enabled": true, "events": ["messages", "status"]}}'`,
         jsExample: `const res = await fetch("/api/proxy/{wid}/webhook/{iid}", {
   method: "POST",
   headers: {
@@ -464,8 +793,11 @@ const { webhook } = await res.json();`,
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    url: "https://example.com/webhook",
-    enabled: true,
+    webhook: {
+      url: "https://example.com/webhook",
+      enabled: true,
+      events: ["messages", "status"],
+    },
   }),
 });`,
       },
@@ -1291,13 +1623,203 @@ const res2 = await fetch("/api/proxy/{wid}/instance/{iid}/message/buttons", {
   }),
 });`,
       },
+      {
+        id: "send-reaction",
+        title: "Send Reaction",
+        method: "POST",
+        path: "/api/proxy/{wid}/instance/{iid}/message/reaction",
+        description:
+          "Sends an emoji reaction to a specific message. The reaction must be a single emoji character.",
+        auth: "required",
+        parameters: [
+          {
+            name: "wid",
+            type: "string",
+            required: true,
+            description: "Workspace ID",
+            example: "abc123",
+          },
+          {
+            name: "iid",
+            type: "string",
+            required: true,
+            description: "Instance ID",
+            example: "my-instance",
+          },
+        ],
+        requestBody: {
+          contentType: "application/json",
+          fields: [
+            {
+              name: "reaction",
+              type: "string",
+              required: true,
+              description: "Single emoji character",
+              example: "\u{1F44D}",
+            },
+            {
+              name: "key",
+              type: "object",
+              required: true,
+              description:
+                'Message key to react to: { "remoteJid": "...", "id": "...", "fromMe": false }',
+              example: JSON.stringify({
+                remoteJid: "5511999999999@s.whatsapp.net",
+                id: "3EB0ABCDEF123456",
+                fromMe: false,
+              }),
+            },
+          ],
+        },
+        responseExample: JSON.stringify(
+          {
+            key: {
+              remoteJid: "5511999999999@s.whatsapp.net",
+              fromMe: true,
+              id: "3EB0GHIJKL789012",
+            },
+            status: "sent",
+            messageType: "reactionMessage",
+          },
+          null,
+          2,
+        ),
+        curlExample: `curl -X POST http://localhost:8090/api/proxy/{wid}/instance/{iid}/message/reaction \\
+  -H "Authorization: YOUR_PB_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+  "reaction": "\u{1F44D}",
+  "key": {
+    "remoteJid": "5511999999999@s.whatsapp.net",
+    "id": "3EB0ABCDEF123456",
+    "fromMe": false
+  }
+}'`,
+        jsExample: `const res = await fetch("/api/proxy/{wid}/instance/{iid}/message/reaction", {
+  method: "POST",
+  headers: {
+    Authorization: pb.authStore.token,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    reaction: "\u{1F44D}",
+    key: {
+      remoteJid: "5511999999999@s.whatsapp.net",
+      id: "3EB0ABCDEF123456",
+      fromMe: false,
+    },
+  }),
+});`,
+      },
+      {
+        id: "send-media",
+        title: "Send Media",
+        method: "POST",
+        path: "/api/proxy/{wid}/instance/{iid}/message/media",
+        description:
+          'Sends a media file using the generic media endpoint. Set mediatype to "image" for images, or omit for documents. For specific media types, prefer the dedicated image, audio, or document endpoints.',
+        auth: "required",
+        parameters: [
+          {
+            name: "wid",
+            type: "string",
+            required: true,
+            description: "Workspace ID",
+            example: "abc123",
+          },
+          {
+            name: "iid",
+            type: "string",
+            required: true,
+            description: "Instance ID",
+            example: "my-instance",
+          },
+        ],
+        requestBody: {
+          contentType: "application/json",
+          fields: [
+            {
+              name: "number",
+              type: "string",
+              required: true,
+              description: "Recipient phone number or group JID",
+              example: "5511999999999",
+            },
+            {
+              name: "mediatype",
+              type: "string",
+              required: false,
+              description: 'Media type: "image" or omit for document',
+              example: "image",
+            },
+            {
+              name: "media",
+              type: "string",
+              required: true,
+              description: "Public URL of the media file",
+              example: "https://example.com/photo.jpg",
+            },
+            {
+              name: "caption",
+              type: "string",
+              required: false,
+              description: "Media caption",
+              example: "Check this out!",
+            },
+            {
+              name: "fileName",
+              type: "string",
+              required: false,
+              description: "Display file name",
+              example: "photo.jpg",
+            },
+            {
+              name: "mimetype",
+              type: "string",
+              required: false,
+              description: "MIME type override (auto-detected if omitted)",
+              example: "image/jpeg",
+            },
+          ],
+        },
+        responseExample: JSON.stringify(
+          {
+            key: {
+              remoteJid: "5511999999999@s.whatsapp.net",
+              fromMe: true,
+              id: "3EB0ABCDEF123456",
+            },
+            status: "sent",
+            messageType: "imageMessage",
+          },
+          null,
+          2,
+        ),
+        curlExample: `curl -X POST http://localhost:8090/api/proxy/{wid}/instance/{iid}/message/media \\
+  -H "Authorization: YOUR_PB_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"number": "5511999999999", "mediatype": "image", "media": "https://example.com/photo.jpg", "caption": "Check this out!"}'`,
+        jsExample: `const res = await fetch("/api/proxy/{wid}/instance/{iid}/message/media", {
+  method: "POST",
+  headers: {
+    Authorization: pb.authStore.token,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    number: "5511999999999",
+    mediatype: "image",
+    media: "https://example.com/photo.jpg",
+    caption: "Check this out!",
+  }),
+});`,
+      },
     ],
   },
   {
     id: "chat",
     title: "Chat",
     description:
-      "Chat-level actions like sending typing indicators (composing, recording audio) to contacts.",
+      "Chat-level actions: typing indicators, read receipts, message deletion, and number validation.",
     icon: Radio,
     endpoints: [
       {
@@ -1357,7 +1879,7 @@ const res2 = await fetch("/api/proxy/{wid}/instance/{iid}/message/buttons", {
             },
           ],
         },
-        responseExample: JSON.stringify({ status: "PENDING" }, null, 2),
+        responseExample: JSON.stringify({}, null, 2),
         curlExample: `curl -X POST http://localhost:8090/api/proxy/{wid}/instance/{iid}/chat/presence \\
   -H "Authorization: YOUR_PB_TOKEN" \\
   -H "Content-Type: application/json" \\
@@ -1374,6 +1896,213 @@ const res2 = await fetch("/api/proxy/{wid}/instance/{iid}/message/buttons", {
     type: "text",
   }),
 });`,
+      },
+      {
+        id: "read-messages",
+        title: "Mark Messages as Read",
+        method: "POST",
+        path: "/api/proxy/{wid}/instance/{iid}/chat/read-messages",
+        description:
+          "Marks one or more messages as read (sends blue checkmarks). Messages are grouped by conversation and processed in batch.",
+        auth: "required",
+        parameters: [
+          {
+            name: "wid",
+            type: "string",
+            required: true,
+            description: "Workspace ID",
+            example: "abc123",
+          },
+          {
+            name: "iid",
+            type: "string",
+            required: true,
+            description: "Instance ID",
+            example: "my-instance",
+          },
+        ],
+        requestBody: {
+          contentType: "application/json",
+          fields: [
+            {
+              name: "readMessages",
+              type: "object[]",
+              required: true,
+              description:
+                'Array of messages to mark as read. Each: { "remoteJid": "...", "id": "...", "sender": "..." }. The sender field is required for group messages.',
+              example: JSON.stringify([
+                {
+                  remoteJid: "5511999999999@s.whatsapp.net",
+                  id: "3EB0ABCDEF123456",
+                },
+              ]),
+            },
+          ],
+        },
+        responseExample: JSON.stringify({}, null, 2),
+        curlExample: `curl -X POST http://localhost:8090/api/proxy/{wid}/instance/{iid}/chat/read-messages \\
+  -H "Authorization: YOUR_PB_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+  "readMessages": [
+    { "remoteJid": "5511999999999@s.whatsapp.net", "id": "3EB0ABCDEF123456" }
+  ]
+}'`,
+        jsExample: `const res = await fetch("/api/proxy/{wid}/instance/{iid}/chat/read-messages", {
+  method: "POST",
+  headers: {
+    Authorization: pb.authStore.token,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    readMessages: [
+      { remoteJid: "5511999999999@s.whatsapp.net", id: "3EB0ABCDEF123456" },
+    ],
+  }),
+});`,
+      },
+      {
+        id: "delete-message",
+        title: "Delete Message for Everyone",
+        method: "DELETE",
+        path: "/api/proxy/{wid}/instance/{iid}/chat/delete-message",
+        description:
+          'Revokes a message for all participants. For group messages sent by others, the "participant" field is required.',
+        auth: "required",
+        parameters: [
+          {
+            name: "wid",
+            type: "string",
+            required: true,
+            description: "Workspace ID",
+            example: "abc123",
+          },
+          {
+            name: "iid",
+            type: "string",
+            required: true,
+            description: "Instance ID",
+            example: "my-instance",
+          },
+        ],
+        requestBody: {
+          contentType: "application/json",
+          fields: [
+            {
+              name: "id",
+              type: "string",
+              required: true,
+              description: "Message ID to delete",
+              example: "3EB0ABCDEF123456",
+            },
+            {
+              name: "remoteJid",
+              type: "string",
+              required: true,
+              description: "Chat JID where the message was sent",
+              example: "5511999999999@s.whatsapp.net",
+            },
+            {
+              name: "fromMe",
+              type: "boolean",
+              required: false,
+              description: "Whether the message was sent by you",
+              example: "true",
+            },
+            {
+              name: "participant",
+              type: "string",
+              required: false,
+              description: "Sender JID (required when deleting another user's message in a group)",
+              example: "5511888888888@s.whatsapp.net",
+            },
+          ],
+        },
+        responseExample: JSON.stringify({}, null, 2),
+        curlExample: `curl -X DELETE http://localhost:8090/api/proxy/{wid}/instance/{iid}/chat/delete-message \\
+  -H "Authorization: YOUR_PB_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"id": "3EB0ABCDEF123456", "remoteJid": "5511999999999@s.whatsapp.net", "fromMe": true}'`,
+        jsExample: `const res = await fetch("/api/proxy/{wid}/instance/{iid}/chat/delete-message", {
+  method: "DELETE",
+  headers: {
+    Authorization: pb.authStore.token,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    id: "3EB0ABCDEF123456",
+    remoteJid: "5511999999999@s.whatsapp.net",
+    fromMe: true,
+  }),
+});`,
+      },
+      {
+        id: "check-number",
+        title: "Check WhatsApp Numbers",
+        method: "POST",
+        path: "/api/proxy/{wid}/instance/{iid}/chat/check-number",
+        description:
+          "Checks if one or more phone numbers are registered on WhatsApp. Returns the WhatsApp JID and LID for each number.",
+        auth: "required",
+        parameters: [
+          {
+            name: "wid",
+            type: "string",
+            required: true,
+            description: "Workspace ID",
+            example: "abc123",
+          },
+          {
+            name: "iid",
+            type: "string",
+            required: true,
+            description: "Instance ID",
+            example: "my-instance",
+          },
+        ],
+        requestBody: {
+          contentType: "application/json",
+          fields: [
+            {
+              name: "numbers",
+              type: "string[]",
+              required: true,
+              description: "Array of phone numbers with country code",
+              example: '["5511999999999", "5511888888888"]',
+            },
+          ],
+        },
+        responseExample: JSON.stringify(
+          [
+            {
+              exists: true,
+              jid: "5511999999999@s.whatsapp.net",
+              number: "5511999999999",
+            },
+            {
+              exists: false,
+              jid: "",
+              number: "5511888888888",
+            },
+          ],
+          null,
+          2,
+        ),
+        curlExample: `curl -X POST http://localhost:8090/api/proxy/{wid}/instance/{iid}/chat/check-number \\
+  -H "Authorization: YOUR_PB_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"numbers": ["5511999999999", "5511888888888"]}'`,
+        jsExample: `const res = await fetch("/api/proxy/{wid}/instance/{iid}/chat/check-number", {
+  method: "POST",
+  headers: {
+    Authorization: pb.authStore.token,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    numbers: ["5511999999999", "5511888888888"],
+  }),
+});
+const results = await res.json();`,
       },
     ],
   },

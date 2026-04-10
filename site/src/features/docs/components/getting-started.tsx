@@ -160,11 +160,13 @@ const instances = await res.json();`}
           parameter in proxy endpoints to specify which workspace to target.
         </p>
         <p className="text-sm text-muted-foreground">
-          Workspaces are managed through PocketBase&apos;s built-in collection API at{" "}
+          Workspaces are managed through the{" "}
           <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
-            /api/collections/workspaces/records
-          </code>
-          .
+            Workspace Management
+          </code>{" "}
+          endpoints documented below. On creation, the Manager immediately polls the WhatsMiau API
+          for instance data. On deletion, all associated health checks and snapshots are cascade
+          deleted.
         </p>
       </div>
     </section>

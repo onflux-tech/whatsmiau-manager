@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export type AuthType = "required" | "public";
 
