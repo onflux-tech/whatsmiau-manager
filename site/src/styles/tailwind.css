@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #00BDB0;
+  --color-primary-hover: #00A89C;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #0D4A47;
+  --color-secondary-foreground: #E6F9F7;
+  --color-secondary-light: #14635E;
+  --color-destructive: #DC3545;
+  --color-destructive-hover: #C82333;
+  --color-destructive-foreground: #FFFFFF;
+  --color-success: #22C55E;
+  --color-warning: #EAB308;
+
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-muted: var(--muted-bg);
+  --color-muted-foreground: var(--text-light);
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--color-primary);
+  --color-accent: var(--surface);
+  --color-accent-foreground: var(--text);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text);
+
+  --radius: 0.5rem;
+}
+
+:root {
+  --bg: #F5F7FA;
+  --surface: #FFFFFF;
+  --muted-bg: #F1F5F9;
+  --text: #2B2B2B;
+  --text-light: #6B7280;
+  --border: #E2E5EA;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(226, 229, 234, 0.5);
+  --dot-color: rgba(0, 0, 0, 0.07);
+}
+
+.dark {
+  --bg: #09090B;
+  --surface: #131316;
+  --muted-bg: #1C1C21;
+  --text: #FAFAFA;
+  --text-light: #A1A1AA;
+  --border: #1E1E22;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --dot-color: rgba(255, 255, 255, 0.04);
+}
+
+*,
+*::before,
+*::after {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+}
+
+.bg-dot-pattern {
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.glass {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Custom scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
+}

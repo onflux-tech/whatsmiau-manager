@@ -1,0 +1,20 @@
+# PocketBase data
+pb_data/
+
+# SPA build output
+site/dist/
+
+# Node
+site/node_modules/
+
+# Go binary
+build/
+tmp/
+manager
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+*.tsbuildinfo

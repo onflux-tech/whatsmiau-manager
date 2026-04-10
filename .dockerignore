@@ -1,0 +1,12 @@
+pb_data/
+site/node_modules/
+site/dist/
+build/
+tmp/
+.git/
+.github/
+.idea/
+.vscode/
+.air.toml
+*.swp
+*.md
