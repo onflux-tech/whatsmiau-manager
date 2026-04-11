@@ -24,6 +24,8 @@ import { useWorkspaces } from "@/hooks/useWorkspaces";
 import pb from "@/lib/pocketbase";
 import type { HealthCheck, Workspace } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { IconPicker } from "./IconPicker";
+import { WorkspaceAvatar } from "./WorkspaceAvatar";
 
 export function WorkspaceSelector() {
   const navigate = useNavigate();
@@ -124,9 +126,7 @@ function WorkspaceCard({
       )}
     >
       <div className="flex items-center justify-between">
-        <span className="flex size-8 items-center justify-center rounded-md bg-muted text-sm font-semibold">
-          {workspace.name.charAt(0).toUpperCase()}
-        </span>
+        <WorkspaceAvatar workspace={workspace} size="lg" />
         <span className={cn("h-2.5 w-2.5 rounded-full", statusColor)} />
       </div>
       <h3 className="mt-2 truncate text-sm font-medium">{workspace.name}</h3>
@@ -154,14 +154,31 @@ function AddWorkspaceDialog({
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [icon, setIcon] = useState("");
+  const [iconColor, setIconColor] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingFileName, setPendingFileName] = useState("");
 
   const mutation = useMutation({
-    mutationFn: () => pb.collection("workspaces").create({ name, url, api_key: apiKey }),
+    mutationFn: () => {
+      const fd = new FormData();
+      fd.append("name", name);
+      fd.append("url", url);
+      fd.append("api_key", apiKey);
+      if (icon) fd.append("icon", icon);
+      if (iconColor) fd.append("icon_color", iconColor);
+      if (pendingFile) fd.append("icon_file", pendingFile);
+      return pb.collection("workspaces").create(fd);
+    },
     onSuccess: () => {
       onOpenChange(false);
       setName("");
       setUrl("");
       setApiKey("");
+      setIcon("");
+      setIconColor("");
+      setPendingFile(null);
+      setPendingFileName("");
       toast.success("Workspace adicionado");
     },
     onError: () => toast.error("Erro ao criar workspace"),
@@ -192,6 +209,24 @@ function AddWorkspaceDialog({
               required
               autoComplete="off"
               data-1p-ignore
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Ícone</Label>
+            <IconPicker
+              icon={icon}
+              iconColor={iconColor}
+              iconFile={pendingFileName}
+              onIconChange={setIcon}
+              onColorChange={setIconColor}
+              onFileChange={(f) => {
+                setPendingFile(f);
+                setPendingFileName(f?.name ?? "");
+              }}
+              onFileClear={() => {
+                setPendingFile(null);
+                setPendingFileName("");
+              }}
             />
           </div>
           <div className="space-y-2">

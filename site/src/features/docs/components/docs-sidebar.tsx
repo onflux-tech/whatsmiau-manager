@@ -10,6 +10,7 @@ const METHOD_DOT: Record<HttpMethod, string> = {
   GET: "bg-blue-400",
   POST: "bg-green-400",
   PUT: "bg-amber-400",
+  PATCH: "bg-amber-400",
   DELETE: "bg-red-400",
 };
 

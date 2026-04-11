@@ -4,9 +4,13 @@ export interface Workspace {
   url: string;
   api_key: string;
   icon: string;
+  icon_color: string;
+  icon_file: string;
   order: number;
   created: string;
   updated: string;
+  collectionId?: string;
+  collectionName?: string;
 }
 
 export interface HealthCheck {

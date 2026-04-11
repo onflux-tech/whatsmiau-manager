@@ -13,6 +13,21 @@ func init() {
 			&core.TextField{Name: "name", Required: true, Max: 100},
 			&core.URLField{Name: "url", Required: true},
 			&core.TextField{Name: "api_key", Required: true},
+			&core.TextField{Name: "icon", Max: 50},
+			&core.TextField{Name: "icon_color", Max: 7},
+			&core.FileField{
+				Name:      "icon_file",
+				MaxSelect: 1,
+				MaxSize:   512 * 1024,
+				MimeTypes: []string{
+					"image/png",
+					"image/jpeg",
+					"image/webp",
+					"image/gif",
+					"image/svg+xml",
+				},
+			},
+			&core.NumberField{Name: "order", Min: toPtr(0.0)},
 			&core.AutodateField{Name: "created", OnCreate: true},
 			&core.AutodateField{Name: "updated", OnCreate: true, OnUpdate: true},
 		)
