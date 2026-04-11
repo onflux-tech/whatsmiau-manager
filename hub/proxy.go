@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/url"
@@ -16,7 +17,18 @@ var (
 )
 
 func (h *Hub) proxyTo(pathFn func(re *core.RequestEvent) string) func(re *core.RequestEvent) error {
+	return h.proxyToWithMethod("", pathFn)
+}
+
+func (h *Hub) proxyToWithMethod(method string, pathFn func(re *core.RequestEvent) string) func(re *core.RequestEvent) error {
 	return func(re *core.RequestEvent) error {
+		var bodyBuf bytes.Buffer
+		if re.Request.Body != nil {
+			io.Copy(&bodyBuf, re.Request.Body)
+			re.Request.Body.Close()
+			re.Request.Body = io.NopCloser(bytes.NewReader(bodyBuf.Bytes()))
+		}
+
 		info, _ := re.RequestInfo()
 		if info.Auth == nil {
 			return re.UnauthorizedError("Authentication required", nil)
@@ -41,11 +53,16 @@ func (h *Hub) proxyTo(pathFn func(re *core.RequestEvent) string) func(re *core.R
 			targetURL += "?" + re.Request.URL.RawQuery
 		}
 
+		upstreamMethod := re.Request.Method
+		if method != "" {
+			upstreamMethod = method
+		}
+
 		req, err := http.NewRequestWithContext(
 			re.Request.Context(),
-			re.Request.Method,
+			upstreamMethod,
 			targetURL,
-			re.Request.Body,
+			bytes.NewReader(bodyBuf.Bytes()),
 		)
 		if err != nil {
 			return re.InternalServerError("Failed to build proxy request", nil)

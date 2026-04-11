@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import {
@@ -25,7 +25,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { IconPicker } from "@/components/workspace/IconPicker";
+import { WorkspaceAvatar } from "@/components/workspace/WorkspaceAvatar";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { useWorkspaces } from "@/hooks/useWorkspaces";
 import pb from "@/lib/pocketbase";
 import { useUIStore } from "@/stores/ui";
 
@@ -38,6 +41,14 @@ export function WorkspaceSettings({ wid }: { wid: string }) {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [icon, setIcon] = useState("");
+  const [iconColor, setIconColor] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingFileName, setPendingFileName] = useState("");
+  const [synced, setSynced] = useState(false);
+
+  const { data: workspaces = [] } = useWorkspaces();
+  const cachedWorkspace = workspaces.find((w) => w.id === wid);
 
   const { data: workspace, isLoading } = useQuery({
     queryKey: ["workspace-settings", wid],
@@ -57,12 +68,48 @@ export function WorkspaceSettings({ wid }: { wid: string }) {
       setUrl(workspace.url);
       setApiKey(workspace.api_key);
     }
-  }, [workspace]);
+    if (cachedWorkspace && !synced) {
+      setIcon(cachedWorkspace.icon ?? "");
+      setIconColor(cachedWorkspace.icon_color ?? "");
+      setPendingFileName(cachedWorkspace.icon_file ?? "");
+      setSynced(true);
+    }
+  }, [workspace, cachedWorkspace, synced]);
+
+  useEffect(() => {
+    if (!settingsOpen) setSynced(false);
+  }, [settingsOpen]);
+
+  const previewUrl = useMemo(() => {
+    if (!pendingFile) return undefined;
+    return URL.createObjectURL(pendingFile);
+  }, [pendingFile]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const updateMutation = useMutation({
-    mutationFn: () => pb.collection("workspaces").update(wid, { name, url, api_key: apiKey }),
-    onSuccess: () => {
+    mutationFn: () => {
+      const fd = new FormData();
+      fd.append("name", name);
+      fd.append("url", url);
+      fd.append("api_key", apiKey);
+      fd.append("icon", icon);
+      fd.append("icon_color", iconColor);
+      if (pendingFile) fd.append("icon_file", pendingFile);
+      return pb.collection("workspaces").update(wid, fd);
+    },
+    onSuccess: (record) => {
+      setIcon(record.icon ?? "");
+      setIconColor(record.icon_color ?? "");
+      setPendingFileName(record.icon_file ?? "");
+      setPendingFile(null);
+      setSynced(true);
       queryClient.invalidateQueries({ queryKey: ["workspace-settings", wid] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       toast.success("Workspace atualizado");
     },
     onError: () => toast.error("Erro ao atualizar"),
@@ -109,6 +156,40 @@ export function WorkspaceSettings({ wid }: { wid: string }) {
                     onChange={(e) => setName(e.target.value)}
                     required
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Ícone</Label>
+                  <div className="flex items-center gap-3">
+                    {cachedWorkspace && (
+                      <WorkspaceAvatar
+                        workspace={{
+                          ...cachedWorkspace,
+                          icon,
+                          icon_color: iconColor,
+                          icon_file: pendingFile ? "" : pendingFileName,
+                        }}
+                        size="lg"
+                        previewUrl={previewUrl}
+                      />
+                    )}
+                    <IconPicker
+                      icon={icon}
+                      iconColor={iconColor}
+                      iconFile={pendingFileName}
+                      onIconChange={setIcon}
+                      onColorChange={setIconColor}
+                      onFileChange={(f) => {
+                        setPendingFile(f);
+                        setPendingFileName(f?.name ?? "");
+                      }}
+                      onFileClear={() => {
+                        setPendingFile(null);
+                        setPendingFileName("");
+                        pb.collection("workspaces").update(wid, { icon_file: null });
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

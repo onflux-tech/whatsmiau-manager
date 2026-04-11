@@ -193,7 +193,7 @@ export function PlaygroundSheet({ open, onOpenChange, endpoint, onHistory }: Pla
       if (key && value) reqHeaders[key] = value;
     }
 
-    const hasBody = body.trim() && endpoint.method !== "GET" && endpoint.method !== "DELETE";
+    const hasBody = body.trim() && endpoint.method !== "GET";
 
     if (hasBody) {
       reqHeaders["Content-Type"] = "application/json";
@@ -289,7 +289,7 @@ export function PlaygroundSheet({ open, onOpenChange, endpoint, onHistory }: Pla
   for (const { key, value } of headers) {
     if (key && value) codeHeaders[key] = value;
   }
-  const hasBody = body.trim() && endpoint.method !== "GET" && endpoint.method !== "DELETE";
+  const hasBody = body.trim() && endpoint.method !== "GET";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -388,7 +388,7 @@ export function PlaygroundSheet({ open, onOpenChange, endpoint, onHistory }: Pla
               </Section>
             )}
 
-            {endpoint.requestBody && endpoint.method !== "GET" && endpoint.method !== "DELETE" && (
+            {endpoint.requestBody && endpoint.method !== "GET" && (
               <Section title="Request Body">
                 <textarea
                   value={body}

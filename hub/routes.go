@@ -215,4 +215,29 @@ func (h *Hub) registerRoutes(e *core.ServeEvent) {
 	proxy.POST("/{wid}/instance/{iid}/chat/presence", h.proxyTo(func(re *core.RequestEvent) string {
 		return "/instance/" + re.Request.PathValue("iid") + "/chat/presence"
 	}))
+
+	// Chat: mark messages as read
+	proxy.POST("/{wid}/instance/{iid}/chat/read-messages", h.proxyTo(func(re *core.RequestEvent) string {
+		return "/instance/" + re.Request.PathValue("iid") + "/chat/read-messages"
+	}))
+
+	// Chat: delete message for everyone
+	proxy.DELETE("/{wid}/instance/{iid}/chat/delete-message", h.proxyTo(func(re *core.RequestEvent) string {
+		return "/instance/" + re.Request.PathValue("iid") + "/chat/deleteMessageForEveryone"
+	}))
+
+	// Chat: check WhatsApp numbers
+	proxy.POST("/{wid}/instance/{iid}/chat/check-number", h.proxyTo(func(re *core.RequestEvent) string {
+		return "/chat/whatsappNumbers/" + re.Request.PathValue("iid")
+	}))
+
+	// Message: send reaction
+	proxy.POST("/{wid}/instance/{iid}/message/reaction", h.proxyTo(func(re *core.RequestEvent) string {
+		return "/message/sendReaction/" + re.Request.PathValue("iid")
+	}))
+
+	// Message: send media (generic)
+	proxy.POST("/{wid}/instance/{iid}/message/media", h.proxyTo(func(re *core.RequestEvent) string {
+		return "/message/sendMedia/" + re.Request.PathValue("iid")
+	}))
 }

@@ -9,6 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { WorkspaceAvatar } from "@/components/workspace/WorkspaceAvatar";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import pb from "@/lib/pocketbase";
 import type { InstanceSnapshot } from "@/lib/types";
@@ -88,9 +89,7 @@ export function CommandPalette({ currentWid }: { currentWid?: string }) {
                 setCommandOpen(false);
               }}
             >
-              <span className="mr-2 flex size-5 items-center justify-center rounded bg-muted text-xs font-semibold">
-                {ws.name.charAt(0).toUpperCase()}
-              </span>
+              <WorkspaceAvatar workspace={ws} size="sm" className="mr-2" />
               {ws.name}
             </CommandItem>
           ))}
