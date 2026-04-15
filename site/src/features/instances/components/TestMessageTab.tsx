@@ -79,21 +79,25 @@ export function TestMessageTab({ wid, iid }: { wid: string; iid: string }) {
 
       switch (type) {
         case "text":
-          body = { number: target, textMessage: { text: content } };
+          body = { number: target, text: content };
           return proxy.sendMessage(wid, iid, "text", body);
         case "image":
           body = {
             number: target,
-            mediaMessage: { mediatype: "image", media: mediaUrl, caption: content },
+            mediatype: "image",
+            media: mediaUrl,
+            caption: content,
           };
           return proxy.sendMessage(wid, iid, "image", body);
         case "audio":
-          body = { number: target, mediaMessage: { mediatype: "audio", media: mediaUrl } };
+          body = { number: target, audio: mediaUrl };
           return proxy.sendMessage(wid, iid, "audio", body);
         case "document":
           body = {
             number: target,
-            mediaMessage: { mediatype: "document", media: mediaUrl, fileName: content || "file" },
+            mediatype: "document",
+            media: mediaUrl,
+            fileName: content || "file",
           };
           return proxy.sendMessage(wid, iid, "document", body);
         default:
