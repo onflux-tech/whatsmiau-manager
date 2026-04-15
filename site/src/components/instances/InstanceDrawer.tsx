@@ -31,6 +31,7 @@ import { INSTANCE_STATUS } from "@/lib/status";
 import { useUIStore } from "@/stores/ui";
 import { ConnectTab } from "./ConnectTab";
 import { ProxyTab } from "./ProxyTab";
+import { TestMessageTab } from "./TestMessageTab";
 import { WebhookTab } from "./WebhookTab";
 
 export function InstanceDrawer({ wid }: { wid: string }) {
@@ -86,6 +87,11 @@ export function InstanceDrawer({ wid }: { wid: string }) {
                   <TabsTrigger value="proxy" className="flex-1">
                     Proxy
                   </TabsTrigger>
+                  {isConnected && (
+                    <TabsTrigger value="test" className="flex-1">
+                      Teste
+                    </TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="connect" className="mt-6">
@@ -99,6 +105,12 @@ export function InstanceDrawer({ wid }: { wid: string }) {
                 <TabsContent value="proxy" className="mt-6">
                   <ProxyTab wid={wid} iid={selectedInstance} />
                 </TabsContent>
+
+                {isConnected && (
+                  <TabsContent value="test" className="mt-6">
+                    <TestMessageTab wid={wid} iid={selectedInstance} />
+                  </TabsContent>
+                )}
               </Tabs>
 
               <Separator className="my-6" />

@@ -69,6 +69,17 @@ export const proxy = {
     proxyFetch("PUT", wid, `/instance/${iid}`, data),
 
   syncInstances: (wid: string) => proxyFetch("POST", wid, "/sync"),
+
+  sendMessage: (wid: string, iid: string, type: string, body: unknown) =>
+    proxyFetch("POST", wid, `/instance/${iid}/message/${type}`, body),
+
+  checkNumber: (wid: string, iid: string, numbers: string[]) =>
+    proxyFetch<{ exists: boolean; jid: string }[]>(
+      "POST",
+      wid,
+      `/instance/${iid}/chat/check-number`,
+      { numbers },
+    ),
 };
 
 // Types
