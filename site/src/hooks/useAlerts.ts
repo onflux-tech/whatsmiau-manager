@@ -1,14 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { alertApi } from "@/lib/proxy";
+import { useRealtime } from "./useRealtime";
+
+const QUERY_KEY = ["alerts"];
 
 export function useAlerts(workspace?: string) {
   const queryClient = useQueryClient();
-  const queryKey = ["alerts", workspace ?? "global"];
+  const queryKey = workspace ? [...QUERY_KEY, workspace] : QUERY_KEY;
+
+  useRealtime("alerts", queryKey);
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey,
-    queryFn: () => alertApi.list({ workspace, unread: false }),
-    refetchInterval: 30_000,
+    queryFn: () => alertApi.list({ workspace }),
+    refetchInterval: 5 * 60_000,
   });
 
   const unreadCount = alerts.filter((a) => !a.read).length;
@@ -23,6 +28,11 @@ export function useAlerts(workspace?: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
+  const clearReadMutation = useMutation({
+    mutationFn: () => alertApi.clearRead(workspace),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
   return {
     alerts,
     unreadCount,
@@ -30,5 +40,7 @@ export function useAlerts(workspace?: string) {
     markRead: markReadMutation.mutate,
     markAllRead: markAllReadMutation.mutate,
     isMarkingAll: markAllReadMutation.isPending,
+    clearRead: clearReadMutation.mutate,
+    isClearing: clearReadMutation.isPending,
   };
 }

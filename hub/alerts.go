@@ -8,6 +8,8 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+const alertsLimit = 50
+
 func (h *Hub) createAlert(workspaceID, snapshotID, instanceName, kind string) {
 	existing, _ := h.App.FindFirstRecordByFilter(
 		"alerts",
@@ -37,6 +39,7 @@ func (h *Hub) createAlert(workspaceID, snapshotID, instanceName, kind string) {
 }
 
 func (h *Hub) registerAlertRoutes(e *core.ServeEvent) {
+	// GET /api/alerts?workspace=<wid>&unread=true
 	e.Router.GET("/api/alerts", func(re *core.RequestEvent) error {
 		if re.Auth == nil {
 			return re.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized"})
@@ -45,15 +48,18 @@ func (h *Hub) registerAlertRoutes(e *core.ServeEvent) {
 		wid := re.Request.URL.Query().Get("workspace")
 		onlyUnread := re.Request.URL.Query().Get("unread") == "true"
 
-		var filters []dbx.Expression
+		filter := "1=1"
+		params := dbx.Params{}
+
 		if wid != "" {
-			filters = append(filters, dbx.NewExp("workspace = {:wid}", dbx.Params{"wid": wid}))
+			filter += " && workspace = {:wid}"
+			params["wid"] = wid
 		}
 		if onlyUnread {
-			filters = append(filters, dbx.NewExp("read = false"))
+			filter += " && read = false"
 		}
 
-		records, err := h.App.FindAllRecords("alerts", dbx.And(filters...))
+		records, err := h.App.FindRecordsByFilter("alerts", filter, "-created", alertsLimit, 0, params)
 		if err != nil {
 			return re.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 		}
@@ -84,6 +90,7 @@ func (h *Hub) registerAlertRoutes(e *core.ServeEvent) {
 		return re.JSON(http.StatusOK, out)
 	})
 
+	// PATCH /api/alerts/read-all — must be registered BEFORE /{id}/read
 	e.Router.PATCH("/api/alerts/read-all", func(re *core.RequestEvent) error {
 		if re.Auth == nil {
 			return re.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized"})
@@ -91,13 +98,14 @@ func (h *Hub) registerAlertRoutes(e *core.ServeEvent) {
 
 		wid := re.Request.URL.Query().Get("workspace")
 
-		var filters []dbx.Expression
-		filters = append(filters, dbx.NewExp("read = false"))
+		filter := "read = false"
+		params := dbx.Params{}
 		if wid != "" {
-			filters = append(filters, dbx.NewExp("workspace = {:wid}", dbx.Params{"wid": wid}))
+			filter += " && workspace = {:wid}"
+			params["wid"] = wid
 		}
 
-		records, err := h.App.FindAllRecords("alerts", dbx.And(filters...))
+		records, err := h.App.FindRecordsByFilter("alerts", filter, "-created", 200, 0, params)
 		if err != nil {
 			return re.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 		}
@@ -112,6 +120,36 @@ func (h *Hub) registerAlertRoutes(e *core.ServeEvent) {
 		return re.JSON(http.StatusOK, map[string]int{"marked": len(records)})
 	})
 
+	// DELETE /api/alerts — delete read alerts (or all if force=true)
+	e.Router.DELETE("/api/alerts", func(re *core.RequestEvent) error {
+		if re.Auth == nil {
+			return re.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized"})
+		}
+
+		wid := re.Request.URL.Query().Get("workspace")
+
+		filter := "read = true"
+		params := dbx.Params{}
+		if wid != "" {
+			filter += " && workspace = {:wid}"
+			params["wid"] = wid
+		}
+
+		records, err := h.App.FindRecordsByFilter("alerts", filter, "-created", 200, 0, params)
+		if err != nil {
+			return re.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+		}
+
+		for _, r := range records {
+			if err := h.App.Delete(r); err != nil {
+				log.Printf("[alerts] failed to delete alert %s: %v", r.Id, err)
+			}
+		}
+
+		return re.JSON(http.StatusOK, map[string]int{"deleted": len(records)})
+	})
+
+	// PATCH /api/alerts/{id}/read
 	e.Router.PATCH("/api/alerts/{id}/read", func(re *core.RequestEvent) error {
 		if re.Auth == nil {
 			return re.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized"})

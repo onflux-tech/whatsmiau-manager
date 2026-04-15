@@ -112,6 +112,11 @@ export const alertApi = {
     const qs = workspace ? `?workspace=${workspace}` : "";
     return alertFetch<{ marked: number }>("PATCH", `/read-all${qs}`);
   },
+
+  clearRead: (workspace?: string) => {
+    const qs = workspace ? `?workspace=${workspace}` : "";
+    return alertFetch<{ deleted: number }>("DELETE", `${qs}`);
+  },
 };
 
 // Types
