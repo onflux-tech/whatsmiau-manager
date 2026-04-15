@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { AlertsPanel } from "@/features/dashboard/components/AlertsPanel";
 import { CheckNumberDialog } from "@/features/instances/components/CheckNumberDialog";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useUIStore } from "@/stores/ui";
@@ -41,6 +42,8 @@ export function TopBar({ wid }: { wid: string }) {
           </Tooltip>
 
           <ThemeToggle />
+
+          <AlertsPanel wid={wid} />
 
           <Tooltip>
             <TooltipTrigger asChild>

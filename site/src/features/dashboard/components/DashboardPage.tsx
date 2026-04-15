@@ -23,6 +23,7 @@ import { IconPicker } from "@/features/workspace/components/IconPicker";
 import pb from "@/lib/pocketbase";
 import { cn } from "@/lib/utils";
 import { useDashboardData } from "../hooks/useDashboardData";
+import { AlertsPanel } from "./AlertsPanel";
 import { WorkspaceCard } from "./WorkspaceCard";
 
 export function DashboardPage() {
@@ -47,6 +48,7 @@ export function DashboardPage() {
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
+            <AlertsPanel />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon-sm" asChild>
