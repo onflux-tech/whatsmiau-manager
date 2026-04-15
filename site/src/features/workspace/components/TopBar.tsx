@@ -1,10 +1,10 @@
 import { BookOpen, LogOut, Phone, Search, Settings } from "lucide-react";
 import { Link } from "react-router";
-import { CheckNumberDialog } from "@/components/instances/CheckNumberDialog";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { CheckNumberDialog } from "@/features/instances/components/CheckNumberDialog";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useUIStore } from "@/stores/ui";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";

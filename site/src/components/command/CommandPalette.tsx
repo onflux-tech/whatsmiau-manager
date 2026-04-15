@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { WorkspaceAvatar } from "@/components/workspace/WorkspaceAvatar";
+import { WorkspaceAvatar } from "@/features/workspace/components/WorkspaceAvatar";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import pb from "@/lib/pocketbase";
 import type { InstanceSnapshot } from "@/lib/types";
