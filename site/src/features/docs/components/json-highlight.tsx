@@ -23,7 +23,7 @@ function span(text: string, className: string): ReactNode {
 export function highlightJSON(code: string): ReactNode[] {
   keyCounter = 0;
 
-  if (!code || !code.trim()) {
+  if (!code?.trim()) {
     return [<span key={0}>{code}</span>];
   }
 
