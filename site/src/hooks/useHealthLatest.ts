@@ -1,10 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import pb from "@/lib/pocketbase";
 import type { HealthCheck } from "@/lib/types";
+import { useRealtime } from "./useRealtime";
+
+const QUERY_KEY = ["health-latest"];
 
 export function useHealthLatest() {
+  useRealtime("health_checks", QUERY_KEY);
+
   return useQuery({
-    queryKey: ["health-latest"],
+    queryKey: QUERY_KEY,
     queryFn: async () => {
       const checks = await pb
         .collection("health_checks")
@@ -15,6 +20,6 @@ export function useHealthLatest() {
       }
       return map;
     },
-    refetchInterval: 60_000,
+    refetchInterval: 5 * 60_000,
   });
 }
