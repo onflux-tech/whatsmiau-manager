@@ -240,4 +240,7 @@ func (h *Hub) registerRoutes(e *core.ServeEvent) {
 	proxy.POST("/{wid}/instance/{iid}/message/media", h.proxyTo(func(re *core.RequestEvent) string {
 		return "/message/sendMedia/" + re.Request.PathValue("iid")
 	}))
+
+	// Alerts
+	h.registerAlertRoutes(e)
 }
