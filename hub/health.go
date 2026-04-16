@@ -181,12 +181,29 @@ func (h *Hub) pollWorkspaceInstances(ws *core.Record) {
 			record.Set("instance_id", r.inst.ID)
 		}
 
+		newStatus := normalizeStatus(r.status)
+		oldStatus := ""
+		if existing != nil {
+			oldStatus = existing.GetString("status")
+		}
+
 		record.Set("name", r.inst.InstanceName)
-		record.Set("status", normalizeStatus(r.status))
+		record.Set("status", newStatus)
 		record.Set("phone", phone)
 
 		if err := h.App.Save(record); err != nil {
 			log.Printf("[snapshot] failed to save instance %s: %v", r.inst.ID, err)
+			continue
+		}
+
+		if oldStatus == "open" && newStatus == "closed" {
+			go h.createAlert(ws.Id, record.Id, r.inst.InstanceName, "disconnected")
+		}
+		if (oldStatus == "closed" || oldStatus == "qr-code" || oldStatus == "connecting") && newStatus == "open" {
+			go h.createAlert(ws.Id, record.Id, r.inst.InstanceName, "reconnected")
+		}
+		if (oldStatus == "open" || oldStatus == "closed") && newStatus == "qr-code" {
+			go h.createAlert(ws.Id, record.Id, r.inst.InstanceName, "qr_pending")
 		}
 	}
 

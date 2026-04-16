@@ -3,9 +3,9 @@ import { Navigate, Route, Routes } from "react-router";
 import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Toaster } from "@/components/ui/sonner";
 import { VersionBadge } from "@/components/ui/version-badge";
-import { WorkspaceSelector } from "@/components/workspace/WorkspaceSelector";
-import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { LoginPage } from "@/features/auth/LoginPage";
+import { DashboardPage } from "@/features/dashboard/components/DashboardPage";
+import { WorkspaceShell } from "@/features/workspace/components/WorkspaceShell";
 
 const DocsPage = lazy(() => import("@/features/docs/components"));
 
@@ -16,7 +16,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
 
         <Route element={<AuthGuard />}>
-          <Route path="/" element={<WorkspaceSelector />} />
+          <Route path="/" element={<DashboardPage />} />
           <Route path="/w/:wid" element={<WorkspaceShell />} />
           <Route
             path="/docs"

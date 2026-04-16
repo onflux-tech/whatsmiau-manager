@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { BookOpen, Moon, Phone, RefreshCw, Sun } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -9,7 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { WorkspaceAvatar } from "@/components/workspace/WorkspaceAvatar";
+import { WorkspaceAvatar } from "@/features/workspace/components/WorkspaceAvatar";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import pb from "@/lib/pocketbase";
 import type { InstanceSnapshot } from "@/lib/types";
@@ -17,11 +18,10 @@ import { useThemeStore } from "@/stores/theme";
 import { useUIStore } from "@/stores/ui";
 
 export function CommandPalette({ currentWid }: { currentWid?: string }) {
-  const { commandOpen, setCommandOpen, selectInstance } = useUIStore();
-  const { toggle: toggleTheme } = useThemeStore();
+  const { commandOpen, setCommandOpen, selectInstance, setCheckNumberOpen } = useUIStore();
+  const { toggle: toggleTheme, dark } = useThemeStore();
   const navigate = useNavigate();
 
-  // Global keyboard shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -44,7 +44,7 @@ export function CommandPalette({ currentWid }: { currentWid?: string }) {
 
   return (
     <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
-      <CommandInput placeholder="Buscar instâncias, workspaces..." />
+      <CommandInput placeholder="Buscar instâncias, workspaces, ações..." />
       <CommandList>
         <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
 
@@ -102,8 +102,10 @@ export function CommandPalette({ currentWid }: { currentWid?: string }) {
               setCommandOpen(false);
             }}
           >
-            Alternar tema (claro/escuro)
+            {dark ? <Sun className="mr-2 size-4" /> : <Moon className="mr-2 size-4" />}
+            Alternar tema ({dark ? "claro" : "escuro"})
           </CommandItem>
+
           {currentWid && (
             <CommandItem
               onSelect={() => {
@@ -111,9 +113,30 @@ export function CommandPalette({ currentWid }: { currentWid?: string }) {
                 setCommandOpen(false);
               }}
             >
+              <RefreshCw className="mr-2 size-4" />
               Sincronizar instâncias
             </CommandItem>
           )}
+
+          <CommandItem
+            onSelect={() => {
+              setCommandOpen(false);
+              setCheckNumberOpen(true);
+            }}
+          >
+            <Phone className="mr-2 size-4" />
+            Verificar número no WhatsApp
+          </CommandItem>
+
+          <CommandItem
+            onSelect={() => {
+              navigate("/docs");
+              setCommandOpen(false);
+            }}
+          >
+            <BookOpen className="mr-2 size-4" />
+            API Docs
+          </CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>

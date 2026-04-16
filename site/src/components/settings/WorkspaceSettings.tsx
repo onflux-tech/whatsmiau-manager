@@ -25,8 +25,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { IconPicker } from "@/components/workspace/IconPicker";
-import { WorkspaceAvatar } from "@/components/workspace/WorkspaceAvatar";
+import { IconPicker } from "@/features/workspace/components/IconPicker";
+import { WorkspaceAvatar } from "@/features/workspace/components/WorkspaceAvatar";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import pb from "@/lib/pocketbase";

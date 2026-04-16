@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -22,8 +22,10 @@ import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
 
 export function InstanceCard({ wid, snapshot }: { wid: string; snapshot: InstanceSnapshot }) {
-  const { selectedInstance, selectInstance, closeDrawer } = useUIStore();
+  const { selectedInstance, selectInstance, closeDrawer, bulkMode, bulkSelected, toggleSelected } =
+    useUIStore();
   const isActive = selectedInstance === snapshot.instance_id;
+  const isChecked = bulkSelected.has(snapshot.instance_id);
   const config = INSTANCE_STATUS[snapshot.status] ?? INSTANCE_STATUS.closed;
 
   const deleteMutation = useMutation({
@@ -40,19 +42,48 @@ export function InstanceCard({ wid, snapshot }: { wid: string; snapshot: Instanc
     <Card
       role="button"
       tabIndex={0}
-      onClick={() => selectInstance(snapshot.instance_id)}
+      onClick={() => {
+        if (bulkMode) {
+          toggleSelected(snapshot.instance_id);
+        } else {
+          selectInstance(snapshot.instance_id);
+        }
+      }}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") selectInstance(snapshot.instance_id);
+        if (e.key === "Enter" || e.key === " ") {
+          if (bulkMode) toggleSelected(snapshot.instance_id);
+          else selectInstance(snapshot.instance_id);
+        }
       }}
       className={cn(
-        "group/card glass cursor-pointer gap-0 rounded-lg border p-3 py-3 shadow-none",
+        "group/card glass cursor-pointer gap-0 rounded-lg border p-3 py-3 shadow-none transition-all",
         isActive
           ? "border-primary shadow-[0_0_12px_rgba(0,189,176,0.25)]"
           : "hover:border-primary/30",
+        isChecked && "border-primary/50 bg-primary/5",
       )}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
+          <label
+            className={cn(
+              "relative flex size-5 shrink-0 items-center justify-center rounded border transition-all cursor-pointer",
+              bulkMode || isChecked ? "opacity-100" : "opacity-0 group-hover/card:opacity-100",
+              isChecked
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-muted-foreground/30 hover:border-primary/50",
+            )}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={() => toggleSelected(snapshot.instance_id)}
+              className="sr-only"
+            />
+            {isChecked && <Check className="size-3" />}
+          </label>
           <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", config.dot)} />
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{snapshot.name || snapshot.instance_id}</p>

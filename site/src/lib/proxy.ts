@@ -69,6 +69,54 @@ export const proxy = {
     proxyFetch("PUT", wid, `/instance/${iid}`, data),
 
   syncInstances: (wid: string) => proxyFetch("POST", wid, "/sync"),
+
+  sendMessage: (wid: string, iid: string, type: string, body: unknown) =>
+    proxyFetch("POST", wid, `/instance/${iid}/message/${type}`, body),
+
+  checkNumber: (wid: string, iid: string, numbers: string[]) =>
+    proxyFetch<{ exists: boolean; jid: string }[]>(
+      "POST",
+      wid,
+      `/instance/${iid}/chat/check-number`,
+      { numbers },
+    ),
+};
+
+async function alertFetch<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+  const url = `/api/alerts${path}`;
+  const headers: Record<string, string> = { Authorization: pb.authStore.token };
+  const init: RequestInit = { method, headers };
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    init.body = JSON.stringify(body);
+  }
+  const res = await fetch(url, init);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(err.message || `Alert API error ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export const alertApi = {
+  list: (params: { workspace?: string; unread?: boolean } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.workspace) qs.set("workspace", params.workspace);
+    if (params.unread) qs.set("unread", "true");
+    return alertFetch<Alert[]>("GET", `?${qs.toString()}`);
+  },
+
+  markRead: (id: string) => alertFetch("PATCH", `/${id}/read`),
+
+  markAllRead: (workspace?: string) => {
+    const qs = workspace ? `?workspace=${workspace}` : "";
+    return alertFetch<{ marked: number }>("PATCH", `/read-all${qs}`);
+  },
+
+  clearRead: (workspace?: string) => {
+    const qs = workspace ? `?workspace=${workspace}` : "";
+    return alertFetch<{ deleted: number }>("DELETE", `${qs}`);
+  },
 };
 
 // Types
@@ -119,4 +167,14 @@ interface InstanceUpdatePayload {
   proxyProtocol?: string;
   proxyUsername?: string;
   proxyPassword?: string;
+}
+
+export interface Alert {
+  id: string;
+  workspace: string;
+  instance_snapshot: string;
+  instance_name: string;
+  kind: "disconnected" | "reconnected" | "qr_pending";
+  read: boolean;
+  created: string;
 }

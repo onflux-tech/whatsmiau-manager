@@ -1,9 +1,9 @@
 import { useParams } from "react-router";
 import { CommandPalette } from "@/components/command/CommandPalette";
-import { InstanceDrawer } from "@/components/instances/InstanceDrawer";
-import { InstanceGrid } from "@/components/instances/InstanceGrid";
 import { WorkspaceSettings } from "@/components/settings/WorkspaceSettings";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { InstanceDrawer } from "@/features/instances/components/InstanceDrawer";
+import { InstanceGrid } from "@/features/instances/components/InstanceGrid";
 import { useUISync } from "@/hooks/useUISync";
 import { StatsBar } from "./StatsBar";
 import { TopBar } from "./TopBar";

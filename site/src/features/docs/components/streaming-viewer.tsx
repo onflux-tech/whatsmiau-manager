@@ -85,10 +85,10 @@ export function StreamingViewer({
   const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   useEffect(() => {
-    if (autoScroll && containerRef.current) {
+    if (autoScroll && containerRef.current && events.length >= 0) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [events, autoScroll]);
+  }, [events.length, autoScroll]);
 
   const handleScroll = useCallback(() => {
     const el = containerRef.current;
