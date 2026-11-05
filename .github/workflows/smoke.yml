@@ -1,0 +1,54 @@
+name: Smoke test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fresh-install:
+    name: Boots on an empty volume
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build --tag whatsmiau-manager:smoke .
+
+      - name: Boot with an empty data volume
+        run: |
+          docker run --detach --name smoke --publish 8090:8090 \
+            --volume smoke-data:/app/pb_data whatsmiau-manager:smoke
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --output /dev/null http://localhost:8090/api/health; then
+              echo "Fresh install booted and /api/health answered 200."
+              exit 0
+            fi
+
+            if [ "$(docker inspect --format '{{.State.Running}}' smoke)" != "true" ]; then
+              echo "::error::The container exited during boot on an empty volume."
+              docker logs smoke
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          echo "::error::/api/health did not answer within 120s on an empty volume."
+          docker logs smoke
+          exit 1
+
+      - name: Stop container
+        if: always()
+        run: |
+          docker logs smoke || true
+          docker rm --force smoke || true
+          docker volume rm --force smoke-data || true
